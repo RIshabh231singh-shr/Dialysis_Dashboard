@@ -23,7 +23,7 @@ const patientSchema = new mongoose.Schema({
     },
     gender:{
         type:String,
-        enum:["Male","Female","Other"],
+        enum:["MALE","FEMALE","OTHER"],
         required:[true,"Gender is required"],
     },
     dryWeight:{
