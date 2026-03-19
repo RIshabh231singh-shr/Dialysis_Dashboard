@@ -26,7 +26,11 @@ const createPatient = async (req, res) => {
 
 const getPatientDetails = async (req, res) => {
     try {
-        const patient = await Patient.findById(req.params.id);
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ success: false, message: "Invalid Patient ID format" });
+        }
+
+        const patient = await Patient.findById(req.params.id).lean();
         if (!patient) {
             return res.status(404).json({
                 success: false,

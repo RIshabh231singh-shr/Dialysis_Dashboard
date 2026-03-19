@@ -6,8 +6,10 @@ app.use(express.json());
 
 // Import Routes
 const PatientRouter = require("./routes/patientRoutes");
+const SessionRouter = require("./routes/sessionRoutes");
 
 // Mount Routes
-app.use("/patients", PatientRouter);
+app.use("/api/patient", PatientRouter);
+app.use("/api/session", SessionRouter);
 
 module.exports = app;
