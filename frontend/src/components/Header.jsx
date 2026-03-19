@@ -29,6 +29,7 @@ const Header = ({ search, setSearch, hospitalUnit, setHospitalUnit }) => {
                     <option value="UNIT A">Unit A</option>
                     <option value="UNIT B">Unit B</option>
                     <option value="UNIT C">Unit C</option>
+                    <option value="UNIT D">Unit D</option>
                 </select>
             </div>
         </header>

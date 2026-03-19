@@ -112,7 +112,12 @@ const PatientsList = () => {
                                                 {/* Left Side: Patient Info */}
                                                 <div className="flex items-center gap-8">
                                                     <div className="w-[200px]">
-                                                        <h3 className="text-base font-bold text-text-primary truncate">{patient.name}</h3>
+                                                        <h3 
+                                                            className="text-base font-bold text-text-primary truncate cursor-pointer hover:text-accent-blue transition-colors duration-200"
+                                                            onClick={() => navigate(`/patient/${patient._id}`)}
+                                                        >
+                                                            {patient.name}
+                                                        </h3>
                                                         <span className="text-xs text-text-secondary">{patient.age} years • {patient.gender}</span>
                                                     </div>
                                                     

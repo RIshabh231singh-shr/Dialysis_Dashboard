@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const PatientCard = ({ patient }) => {
+    const navigate = useNavigate();
+
     return (
         <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -28,7 +31,10 @@ const PatientCard = ({ patient }) => {
             </div>
             
             <div className="mt-5 pt-4 border-t border-border-color flex justify-end">
-                <button className="bg-accent-blue text-white px-4 py-2 rounded-lg text-[0.8125rem] font-semibold transition-colors duration-200 hover:bg-accent-blue-hover">
+                <button 
+                    onClick={() => navigate(`/patient/${patient._id}`)}
+                    className="bg-accent-blue text-white px-4 py-2 rounded-lg text-[0.8125rem] font-semibold transition-colors duration-200 hover:bg-accent-blue-hover"
+                >
                     View Details
                 </button>
             </div>

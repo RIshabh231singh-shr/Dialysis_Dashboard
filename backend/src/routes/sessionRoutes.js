@@ -5,7 +5,8 @@ const {
     endSession, 
     updateSession, 
     getSessionsByDate, 
-    getSessionsByHospitalUnit 
+    getSessionsByHospitalUnit,
+    getSessionsByPatient
 } = require("../controllers/sessionController");
 
 const SessionRouter = express.Router();
@@ -18,5 +19,6 @@ SessionRouter.patch("/:id/update", updateSession);
 // Search Routes
 SessionRouter.get("/search/date", getSessionsByDate);
 SessionRouter.get("/search/unit/:unit", getSessionsByHospitalUnit);
+SessionRouter.get("/patient/:patientId", getSessionsByPatient);
 
 module.exports = SessionRouter;

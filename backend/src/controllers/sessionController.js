@@ -168,11 +168,30 @@ const getSessionsByHospitalUnit = async (req, res) => {
     }
 };
 
+const getSessionsByPatient = async (req, res) => {
+    try {
+        const { patientId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(patientId)) {
+            return res.status(400).json({ success: false, message: "Invalid Patient ID format" });
+        }
+
+        const sessions = await Session.find({ patientId })
+            .sort({ sessionDate: -1 })
+            .lean();
+
+        res.status(200).json({ success: true, data: sessions });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = { 
     createSession, 
     startSession, 
     endSession, 
     updateSession, 
     getSessionsByDate, 
-    getSessionsByHospitalUnit 
+    getSessionsByHospitalUnit,
+    getSessionsByPatient
 };
