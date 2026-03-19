@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Patient = require("../models/Patient");
 const { validatePatientData } = require("../utils/patientValidator");
 
@@ -46,5 +47,36 @@ const getPatientDetails = async (req, res) => {
     }
 }
     
+const getAllPatients = async (req, res) => {
+    try {
+        const { page = 1, limit = 10, search = "" } = req.query;
+        const pageNum = Number(page);
+        const limitNum = Number(limit);
 
-module.exports = { createPatient , getPatientDetails };
+        let query = {};
+
+        if (search) {
+            query = {
+                $text: {
+                    $search: search
+                }
+            };
+        }
+
+        const patients = await Patient.find(query)
+            .select("name age gender hospitalUnit bloodGroup")
+            .limit(limitNum)
+            .skip((pageNum - 1) * limitNum)
+            .lean();
+
+        res.status(200).json({
+            success: true,
+            data: patients,
+            currentPage: pageNum,
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+module.exports = { createPatient, getPatientDetails, getAllPatients };
