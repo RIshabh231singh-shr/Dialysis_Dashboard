@@ -49,22 +49,24 @@ const getPatientDetails = async (req, res) => {
     
 const getAllPatients = async (req, res) => {
     try {
-        const { page = 1, limit = 10, search = "" } = req.query;
+        const { page = 1, limit = 10, search = "", hospitalUnit = "" } = req.query;
         const pageNum = Number(page);
         const limitNum = Number(limit);
 
         let query = {};
 
         if (search) {
-            query = {
-                $text: {
-                    $search: search
-                }
-            };
+            query.$text = { $search: search };
         }
 
+        if (hospitalUnit) {
+            query.hospitalUnit = hospitalUnit.toUpperCase();
+        }
+
+        const totalPatients = await Patient.countDocuments(query);
         const patients = await Patient.find(query)
             .select("name age gender hospitalUnit bloodGroup")
+            .sort({ createdAt: -1 })
             .limit(limitNum)
             .skip((pageNum - 1) * limitNum)
             .lean();
@@ -72,7 +74,12 @@ const getAllPatients = async (req, res) => {
         res.status(200).json({
             success: true,
             data: patients,
-            currentPage: pageNum,
+            pagination: {
+                totalResults: totalPatients,
+                totalPages: Math.ceil(totalPatients / limitNum),
+                currentPage: pageNum,
+                limit: limitNum
+            }
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
