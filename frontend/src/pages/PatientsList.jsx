@@ -5,6 +5,7 @@ import { Loader2, Search, PlusCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import Pagination from '../components/Pagination';
+import { useSelector } from 'react-redux';
 
 const PatientsList = () => {
     const [patients, setPatients] = useState([]);
@@ -16,6 +17,9 @@ const PatientsList = () => {
         totalResults: 0
     });
     const navigate = useNavigate();
+    
+    // Poll global active sessions to render glowing dot
+    const activeSessions = useSelector(state => state.session.activeSessions);
 
     const fetchPatients = async () => {
         try {
@@ -112,12 +116,20 @@ const PatientsList = () => {
                                                 {/* Left Side: Patient Info */}
                                                 <div className="flex items-center gap-8">
                                                     <div className="w-[200px]">
-                                                        <h3 
-                                                            className="text-base font-bold text-text-primary truncate cursor-pointer hover:text-accent-blue transition-colors duration-200"
-                                                            onClick={() => navigate(`/patient/${patient._id}`)}
-                                                        >
-                                                            {patient.name}
-                                                        </h3>
+                                                        <div className="flex items-center gap-2">
+                                                            <h3 
+                                                                className="text-base font-bold text-text-primary truncate cursor-pointer hover:text-accent-blue transition-colors duration-200"
+                                                                onClick={() => navigate(`/patient/${patient._id}`)}
+                                                            >
+                                                                {patient.name}
+                                                            </h3>
+                                                            {!!activeSessions[patient._id] && (
+                                                                <span className="flex h-2.5 w-2.5 relative" title="Session In Progress">
+                                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                                                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         <span className="text-xs text-text-secondary">{patient.age} years • {patient.gender}</span>
                                                     </div>
                                                     
@@ -142,7 +154,7 @@ const PatientsList = () => {
                                                         </div>
                                                     ) : (
                                                         <button 
-                                                            onClick={() => navigate('/add-session')}
+                                                            onClick={() => navigate(`/add-session/${patient._id}`)}
                                                             className="flex items-center gap-2 px-4 py-2 bg-accent-blue/10 hover:bg-accent-blue text-accent-blue hover:text-white border border-transparent transition-all duration-200 rounded-lg text-sm font-semibold group-hover:border-accent-blue/30"
                                                         >
                                                             <PlusCircle size={16} />

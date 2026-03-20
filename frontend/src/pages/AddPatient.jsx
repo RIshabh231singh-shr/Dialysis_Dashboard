@@ -184,12 +184,16 @@ const AddPatient = () => {
                                 {/* Hospital Unit Input */}
                                 <div className="md:col-span-2">
                                     <label className={labelClasses}>Hospital Unit</label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="e.g. UNIT A"
+                                    <select 
                                         className={inputClasses}
                                         {...register('hospitalUnit')}
-                                    />
+                                    >
+                                        <option value="">Select Unit</option>
+                                        <option value="UNIT A">UNIT A</option>
+                                        <option value="UNIT B">UNIT B</option>
+                                        <option value="UNIT C">UNIT C</option>
+                                        <option value="UNIT D">UNIT D</option>
+                                    </select>
                                     {errors.hospitalUnit && <p className={errorClasses}>{errors.hospitalUnit.message}</p>}
                                 </div>
                             </div>

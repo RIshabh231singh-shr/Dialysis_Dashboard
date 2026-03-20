@@ -1,6 +1,13 @@
 const mongoose = require("mongoose");
 const Patient = require("../models/Patient");
 const { validatePatientData } = require("../utils/patientValidator");
+const Session = require("../models/Session");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const createPatient = async (req, res) => {
     try {
@@ -49,11 +56,20 @@ const getPatientDetails = async (req, res) => {
     
 const getAllPatients = async (req, res) => {
     try {
-        const { page = 1, limit = 10, search = "", hospitalUnit = "" } = req.query;
+        const { page = 1, limit = 10, search = "", hospitalUnit = "", todaySessionsOnly } = req.query;
         const pageNum = Number(page);
         const limitNum = Number(limit);
 
         let query = {};
+
+        if (todaySessionsOnly === 'true') {
+            const now = dayjs().tz("Asia/Kolkata");
+            const startOfDay = now.startOf('day').toDate();
+            const endOfDay = now.endOf('day').toDate();
+            const todaysSessions = await Session.find({ sessionDate: { $gte: startOfDay, $lte: endOfDay } });
+            const patientIds = todaysSessions.map(s => s.patientId);
+            query._id = { $in: patientIds };
+        }
 
         if (search) {
             query.$text = { $search: search };
@@ -62,8 +78,7 @@ const getAllPatients = async (req, res) => {
         if (hospitalUnit) {
             query.hospitalUnit = hospitalUnit.toUpperCase();
         }
-
-        const totalPatients = await Patient.countDocuments(query);
+ 
         const patients = await Patient.find(query)
             .select("name age gender hospitalUnit bloodGroup")
             .sort({ createdAt: -1 })

@@ -9,7 +9,6 @@ const Sidebar = () => {
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: Users, label: 'Patients', path: '/patients' },
         { icon: UserPlus, label: 'Add Patient', path: '/add-patient' },
-        { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 
     return (

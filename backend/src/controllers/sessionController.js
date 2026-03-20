@@ -52,7 +52,7 @@ const updateSession = async (req, res) => {
         const session = await Session.findByIdAndUpdate(
             req.params.id,
             validation.formattedData,
-            { new: true, runValidators: true }
+            { returnDocument: "after", runValidators: true }
         ).populate("patientId");
 
         if (!session) {
@@ -83,7 +83,7 @@ const startSession = async (req, res) => {
         const currentSession = await Session.findOneAndUpdate(
             { _id: id, status: "SCHEDULED" },
             { startTime: new Date(), status: "IN_PROGRESS" },
-            { new: true }
+            { returnDocument: "after" }
         );
         
         if (!currentSession) {
@@ -186,6 +186,47 @@ const getSessionsByPatient = async (req, res) => {
     }
 };
 
+// @desc    Get all currently active (IN_PROGRESS) sessions purely to sync global state
+// @route   GET /api/session/active
+// @access  Public (for now)
+const getActiveSessions = async (req, res) => {
+    try {
+        const activeSessions = await Session.find({ status: "IN_PROGRESS" })
+            .select("patientId status startTime")
+            .lean();
+            
+        res.status(200).json({
+            success: true,
+            count: activeSessions.length,
+            data: activeSessions
+        });
+    } catch (error) {
+        console.error("Error fetching active sessions:", error);
+        res.status(500).json({ success: false, message: "Server error", error: error.message });
+    }
+};
+
+// @desc    Get session by ID
+// @route   GET /api/session/:id
+// @access  Public
+const getSessionById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: "Invalid Session ID format" });
+        }
+
+        const session = await Session.findById(id).populate("patientId", "name age gender bloodGroup hospitalUnit");
+        if (!session) {
+            return res.status(404).json({ success: false, message: "Session not found" });
+        }
+
+        res.status(200).json({ success: true, data: session });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = { 
     createSession, 
     startSession, 
@@ -193,5 +234,7 @@ module.exports = {
     updateSession, 
     getSessionsByDate, 
     getSessionsByHospitalUnit,
-    getSessionsByPatient
+    getSessionsByPatient,
+    getActiveSessions,
+    getSessionById
 };

@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import api from '../utility/axiosInstance';
 import { Loader2, ArrowLeft, PlusCircle, Activity, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useSelector } from 'react-redux';
 
 const PatientInfo = () => {
     const { id } = useParams();
@@ -14,6 +15,10 @@ const PatientInfo = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [filter, setFilter] = useState('ALL'); // 'ALL', 'COMPLETED', 'IN_PROGRESS', 'SCHEDULED'
+
+    // Redux Global state tracker
+    const activeSessions = useSelector((state) => state.session.activeSessions);
+    const hasActiveSession = !!activeSessions[id];
 
     useEffect(() => {
         const fetchPatientData = async () => {
@@ -107,6 +112,12 @@ const PatientInfo = () => {
                         <div className="flex items-center justify-between">
                             <h1 className="text-[2rem] font-bold text-text-primary leading-tight flex items-center gap-4">
                                 {patient.name}
+                                {hasActiveSession && (
+                                    <span className="flex h-3.5 w-3.5 relative ml-1" title="Session In Progress">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]"></span>
+                                    </span>
+                                )}
                                 <span className="bg-accent-red/10 text-accent-red px-3 py-1 rounded-lg text-sm font-bold tracking-wider align-middle">
                                     {patient.bloodGroup}
                                 </span>
@@ -152,7 +163,7 @@ const PatientInfo = () => {
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold text-text-primary">Dialysis Sessions</h2>
                             <button 
-                                onClick={() => navigate('/add-session')}
+                                onClick={() => navigate(`/add-session/${id}`)}
                                 className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white rounded-lg text-sm font-semibold hover:bg-accent-blue-hover transition-colors shadow-lg shadow-accent-blue/20"
                             >
                                 <PlusCircle size={16} />
@@ -188,7 +199,7 @@ const PatientInfo = () => {
                                     <h3 className="text-lg font-medium text-text-primary mb-2">No sessions till now</h3>
                                     <p className="text-text-secondary mb-6 max-w-sm mx-auto">This patient hasn't had any dialysis sessions logged yet. Create a new session to get started.</p>
                                     <button 
-                                        onClick={() => navigate('/add-session')}
+                                        onClick={() => navigate(`/add-session/${id}`)}
                                         className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent-blue/10 text-accent-blue border border-accent-blue/20 rounded-xl font-semibold hover:bg-accent-blue hover:text-white transition-all"
                                     >
                                         <PlusCircle size={18} />
@@ -254,6 +265,12 @@ const PatientInfo = () => {
 
                                             {/* Status Badge */}
                                             <div className="flex items-center gap-4">
+                                                {activeSessions[patient._id] === session._id && (
+                                                    <span className="flex h-3 w-3 relative" title="Active in Real-Time">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
+                                                    </span>
+                                                )}
                                                 <div className={`px-4 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border} border`}>
                                                     {statusStyle.label}
                                                 </div>

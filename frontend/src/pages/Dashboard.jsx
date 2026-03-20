@@ -25,7 +25,8 @@ const Dashboard = () => {
                     page,
                     search,
                     hospitalUnit,
-                    limit: 8
+                    limit: 8,
+                    todaySessionsOnly: true
                 }
             });
             

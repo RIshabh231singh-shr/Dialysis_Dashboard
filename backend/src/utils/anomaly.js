@@ -58,12 +58,20 @@ const detectAnomalies = (patient, session) => {
   if (session.startTime && session.endTime) {
     const durationMin = Math.round((new Date(session.endTime) - new Date(session.startTime)) / 60000);
 
-    if (durationMin < 120) {
-      anomalies.push({ type: "DURATION", message: "Critical short session (<2h)", severity: "HIGH" });
-    } else if (durationMin < 150) {
-      anomalies.push({ type: "DURATION", message: "Short session (<2.5h)", severity: "MEDIUM" });
-    } else if (durationMin < 180) {
-      anomalies.push({ type: "DURATION", message: "Incomplete target time (<3h)", severity: "LOW" });
+    if (durationMin < 30) {
+      anomalies.push({ type: "DURATION", message: "Critical short session (<30 min)", severity: "HIGH" });
+    } else if (durationMin < 45) {
+      anomalies.push({ type: "DURATION", message: "Short session (<45 min)", severity: "MEDIUM" });
+    } else if (durationMin < 60) {
+      anomalies.push({ type: "DURATION", message: "Incomplete target time (<1h)", severity: "LOW" });
+    }
+
+    if(durationMin > 240){
+      anomalies.push({ type: "DURATION", message: "Excessive session time (>4h)", severity: "HIGH" });
+    }else if(durationMin > 210){
+      anomalies.push({ type: "DURATION", message: "Excessive session time (>3.5h)", severity: "MEDIUM" });
+    }else if(durationMin > 180){
+      anomalies.push({ type: "DURATION", message: "Excessive session time (>3h)", severity: "LOW" });
     }
   }
 

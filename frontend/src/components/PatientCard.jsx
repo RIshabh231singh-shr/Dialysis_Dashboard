@@ -1,8 +1,12 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const PatientCard = ({ patient }) => {
     const navigate = useNavigate();
+    
+    // Check if this patient has an active session in the global Redux store
+    const hasActiveSession = useSelector(state => !!state.session.activeSessions[patient._id]);
 
     return (
         <motion.div 
@@ -12,7 +16,15 @@ const PatientCard = ({ patient }) => {
         >
             <div className="flex justify-between items-start mb-4">
                 <div>
-                    <h3 className="text-lg font-semibold mb-1 text-text-primary">{patient.name}</h3>
+                    <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-semibold text-text-primary">{patient.name}</h3>
+                        {hasActiveSession && (
+                            <span className="flex h-3 w-3 relative" title="Session In Progress">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
+                            </span>
+                        )}
+                    </div>
                     <div className="text-[0.8125rem] text-text-secondary">
                         {patient.age} years • {patient.gender}
                     </div>
