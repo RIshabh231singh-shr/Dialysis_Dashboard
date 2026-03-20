@@ -209,10 +209,16 @@ const TodaySessions = () => {
                                 <div className="text-center py-20 bg-bg-secondary/30 rounded-3xl border border-dashed border-border-color">
                                     <Calendar size={48} className="mx-auto text-border-color mb-4 opacity-50" />
                                     <h3 className="text-xl font-bold text-text-primary">
-                                        {showAnomaliesOnly ? "No anomalies found" : "No sessions today"}
+                                        {showAnomaliesOnly 
+                                            ? "No anomalies found" 
+                                            : isToday ? "No sessions today" : `No sessions on ${dayjs(selectedDate).format('MMM D, YYYY')}`}
                                     </h3>
                                     <p className="text-text-secondary mt-2">
-                                        {showAnomaliesOnly ? "There are no sessions with flagged anomalies on this date." : "There are no dialysis sessions scheduled for the current date."}
+                                        {showAnomaliesOnly 
+                                            ? "There are no sessions with flagged anomalies on this date." 
+                                            : isToday 
+                                                ? "There are no dialysis sessions scheduled for the current date." 
+                                                : `There are no dialysis sessions recorded for ${dayjs(selectedDate).format('MMMM D, YYYY')}.`}
                                     </p>
                                 </div>
                             )}
