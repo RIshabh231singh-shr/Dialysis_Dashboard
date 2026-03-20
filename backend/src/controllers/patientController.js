@@ -78,6 +78,8 @@ const getAllPatients = async (req, res) => {
         if (hospitalUnit) {
             query.hospitalUnit = hospitalUnit.toUpperCase();
         }
+
+        const totalPatients = await Patient.countDocuments(query);
  
         const patients = await Patient.find(query)
             .select("name age gender hospitalUnit bloodGroup")

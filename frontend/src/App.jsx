@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
+import TodaySessions from './pages/TodaySessions';
 import AddPatient from './pages/AddPatient';
 import PatientsList from './pages/PatientsList';
 import PatientInfo from './pages/PatientInfo';
@@ -28,6 +29,7 @@ function AppContent() {
     <div className="min-h-screen bg-bg-primary text-text-primary font-sans selection:bg-blue-500/30">
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/today-sessions" element={<TodaySessions />} />
         <Route path="/add-patient" element={<AddPatient />} />
         <Route path="/patients" element={<PatientsList />} />
         <Route path="/patient/:id" element={<PatientInfo />} />

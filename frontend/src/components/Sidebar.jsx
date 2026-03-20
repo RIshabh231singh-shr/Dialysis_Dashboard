@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, UserPlus, Settings, LogOut, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Calendar, Settings, LogOut, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -7,6 +7,7 @@ const Sidebar = () => {
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+        { icon: Calendar, label: "Today's Sessions", path: '/today-sessions' },
         { icon: Users, label: 'Patients', path: '/patients' },
         { icon: UserPlus, label: 'Add Patient', path: '/add-patient' },
     ];

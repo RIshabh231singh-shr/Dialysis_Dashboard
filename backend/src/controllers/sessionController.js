@@ -3,6 +3,7 @@ const Session = require("../models/Session");
 const { validatePreSessionData, validatePostSessionData } = require("../utils/sessionValidator");
 const Patient = require("../models/Patient");
 const detectAnomalies = require("../utils/anomaly");
+const redisClient = require("../config/redis");
 
 //for date
 const dayjs = require("dayjs");
@@ -11,6 +12,17 @@ const timezone = require("dayjs/plugin/timezone");
 // Initialize Plugins
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+
+// Cache Invalidation Helper
+const invalidateTodaySessionsCache = async () => {
+    try {
+        await redisClient.del("today_sessions");
+        console.log("Redis cache invalidated: today_sessions");
+    } catch (err) {
+        console.error("Redis Cache Invalidation error:", err);
+    }
+};
 
 
 const createSession = async (req, res) => {
@@ -25,6 +37,9 @@ const createSession = async (req, res) => {
         }
 
         const session = await Session.create(validation.formattedData);
+
+        // Invalidate cache
+        await invalidateTodaySessionsCache();
 
         res.status(201).json({
             success: true,
@@ -67,6 +82,9 @@ const updateSession = async (req, res) => {
         // Save anomalies (This is safe as we just got the latest 'session' from DB)
         await session.save();
 
+        // Invalidate cache
+        await invalidateTodaySessionsCache();
+
         res.status(200).json({
             success: true,
             message: "Session updated and anomalies calculated successfully",
@@ -89,6 +107,9 @@ const startSession = async (req, res) => {
         if (!currentSession) {
             return res.status(404).json({ success: false, message: "Session not found" });
         }
+
+        // Invalidate cache
+        await invalidateTodaySessionsCache();
 
         res.status(200).json({ success: true, message: "Session started", data: currentSession });
     } catch (error) {
@@ -119,6 +140,9 @@ const endSession = async (req, res) => {
 
         await session.save();
 
+        // Invalidate cache
+        await invalidateTodaySessionsCache();
+
         res.status(200).json({
             success: true,
             message: "Session ended. Now proceed to update post-dialysis data.",
@@ -145,7 +169,7 @@ const getSessionsByDate = async (req, res) => {
 
         const sessions = await Session.find({
             sessionDate: { $gte: startOfDay, $lte: endOfDay }
-        }).populate("patientId", "name age gender hospitalUnit").select("-__v")
+        }).populate("patientId", "name age gender hospitalUnit bloodGroup").select("-__v")
         .lean();
 
         res.status(200).json({ success: true, data: sessions });
@@ -227,6 +251,69 @@ const getSessionById = async (req, res) => {
     }
 };
 
+const updateNursingNotes = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { notes } = req.body;
+
+        if (notes && notes.length > 500) {
+            return res.status(400).json({ success: false, message: "Notes cannot exceed 500 characters" });
+        }
+
+        const session = await Session.findByIdAndUpdate(
+            id,
+            { notes: notes?.trim() },
+            { returnDocument: "after" }
+        ).populate("patientId", "name age gender hospitalUnit bloodGroup");
+
+        if (!session) {
+            return res.status(404).json({ success: false, message: "Session not found" });
+        }
+
+        // Invalidate cache since notes are visible in today's sessions
+        await invalidateTodaySessionsCache();
+
+        res.status(200).json({ success: true, message: "Nursing notes updated", data: session });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const getTodaySessions = async (req, res) => {
+    try {
+        const cacheKey = "today_sessions";
+        
+        // Try to get from Redis
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            console.log("Serving today's sessions from cache");
+            return res.status(200).json({ success: true, fromCache: true, data: JSON.parse(cachedData) });
+        }
+
+        // Fetch from DB if not in cache (Today's IST range)
+        const todayStr = dayjs().tz("Asia/Kolkata").format("YYYY-MM-DD");
+        const startOfDay = dayjs.tz(todayStr, "Asia/Kolkata").startOf('day').toDate();
+        const endOfDay = dayjs.tz(todayStr, "Asia/Kolkata").endOf('day').toDate();
+
+        const sessions = await Session.find({
+            sessionDate: { $gte: startOfDay, $lte: endOfDay }
+        })
+        .populate("patientId", "name age gender hospitalUnit bloodGroup")
+        .select("-__v")
+        .sort({ sessionDate: 1, startTime: 1 })
+        .lean();
+
+        // Store in Redis (expire in 1 hour)
+        await redisClient.set(cacheKey, JSON.stringify(sessions), { EX: 3600 });
+        console.log("Today's sessions cached in Redis");
+
+        res.status(200).json({ success: true, fromCache: false, data: sessions });
+    } catch (error) {
+        console.error("Redis/DB Error in getTodaySessions:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = { 
     createSession, 
     startSession, 
@@ -236,5 +323,7 @@ module.exports = {
     getSessionsByHospitalUnit,
     getSessionsByPatient,
     getActiveSessions,
-    getSessionById
+    getSessionById,
+    getTodaySessions,
+    updateNursingNotes
 };

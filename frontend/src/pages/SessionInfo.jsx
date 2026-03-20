@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Sidebar from '../components/Sidebar';
 import api from '../utility/axiosInstance';
-import { Loader2, ArrowLeft, Play, Square, FileEdit, Activity, AlertTriangle, CheckCircle2, HeartPulse, Scale, Clock } from 'lucide-react';
+import { Loader2, ArrowLeft, Play, Square, FileEdit, Activity, AlertTriangle, CheckCircle2, HeartPulse, Scale, Clock, Edit3, Save, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { addActiveSession, removeActiveSession, fetchActiveSessions } from '../slices/sessionSlice';
 
@@ -28,6 +28,8 @@ const SessionInfo = () => {
     const [actionLoading, setActionLoading] = useState(false);
     const [error, setError] = useState('');
     const [showUpdateForm, setShowUpdateForm] = useState(false);
+    const [isEditingNotes, setIsEditingNotes] = useState(false);
+    const [tempNotes, setTempNotes] = useState('');
 
     // Global active sessions map
     const activeSessions = useSelector(state => state.session.activeSessions);
@@ -104,6 +106,21 @@ const SessionInfo = () => {
             }
         } catch (err) {
             alert(err.response?.data?.message || 'Error updating post-dialysis data');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleSaveNotes = async () => {
+        try {
+            setActionLoading(true);
+            const res = await api.patch(`/session/${id}/notes`, { notes: tempNotes });
+            if (res.data.success) {
+                setIsEditingNotes(false);
+                fetchSessionData();
+            }
+        } catch (err) {
+            alert(err.response?.data?.message || 'Error updating nursing notes');
         } finally {
             setActionLoading(false);
         }
@@ -293,12 +310,46 @@ const SessionInfo = () => {
                                         )}
                                     </div>
 
-                                    {session.notes && (
-                                        <div className="pt-4 border-t border-white/5">
-                                            <span className="text-xs text-text-secondary uppercase tracking-wider block mb-2">Nursing Notes</span>
-                                            <p className="text-sm bg-bg-primary p-3 rounded-lg font-medium leading-relaxed">{session.notes}</p>
+                                    <div className="pt-4 border-t border-white/5">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-xs text-text-secondary uppercase tracking-wider block">Nursing Notes</span>
+                                            {!isEditingNotes ? (
+                                                <button 
+                                                    onClick={() => {
+                                                        setTempNotes(session.notes || '');
+                                                        setIsEditingNotes(true);
+                                                    }}
+                                                    className="text-accent-blue hover:text-white transition-colors p-1"
+                                                    title="Edit Notes"
+                                                >
+                                                    <Edit3 size={14} />
+                                                </button>
+                                            ) : (
+                                                <div className="flex gap-2">
+                                                    <button onClick={handleSaveNotes} className="text-green-500 hover:text-white transition-colors p-1" title="Save">
+                                                        <Save size={14} />
+                                                    </button>
+                                                    <button onClick={() => setIsEditingNotes(false)} className="text-accent-red hover:text-white transition-colors p-1" title="Cancel">
+                                                        <X size={14} />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+                                        
+                                        {!isEditingNotes ? (
+                                            <p className="text-sm bg-bg-primary p-3 rounded-lg font-medium leading-relaxed min-h-[40px]">
+                                                {session.notes || <span className="text-text-secondary italic">No notes added yet. Click pencil to add.</span>}
+                                            </p>
+                                        ) : (
+                                            <textarea 
+                                                value={tempNotes}
+                                                onChange={(e) => setTempNotes(e.target.value)}
+                                                className="w-full py-2 px-3 bg-bg-primary border border-accent-blue/50 rounded-lg text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent-blue resize-none min-h-[80px]"
+                                                placeholder="Enter clinical observations..."
+                                                autoFocus
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                             )}
 

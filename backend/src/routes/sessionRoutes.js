@@ -8,15 +8,19 @@ const {
     getSessionsByHospitalUnit,
     getSessionsByPatient,
     getActiveSessions,
-    getSessionById
+    getSessionById,
+    getTodaySessions,
+    updateNursingNotes
 } = require("../controllers/sessionController");
 
 const SessionRouter = express.Router();
 
+SessionRouter.get("/today", getTodaySessions);
 SessionRouter.post("/create", createSession);
 SessionRouter.patch("/:id/start", startSession);
 SessionRouter.patch("/:id/end", endSession);
 SessionRouter.patch("/:id/update", updateSession);
+SessionRouter.patch("/:id/notes", updateNursingNotes);
 
 // Fetch Active Sessions Globally
 SessionRouter.get("/active", getActiveSessions);
